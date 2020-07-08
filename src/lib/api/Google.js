@@ -11,24 +11,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Google = void 0;
 const googleapis_1 = require("googleapis");
-const maps_1 = require("@google/maps");
+const google_maps_services_js_1 = require("@googlemaps/google-maps-services-js");
 const auth = new googleapis_1.google.auth.OAuth2(process.env.G_CLIENT_ID, process.env.G_CLIENT_SECRET, `${process.env.PUBLIC_URL}/login`);
-const maps = maps_1.createClient({
-    key: `${process.env.G_GEOCODE_KEY}`,
-    Promise
-});
+const maps = new google_maps_services_js_1.Client({});
 const parseAddress = (addressComponents) => {
     let country = null;
     let admin = null;
     let city = null;
     for (const component of addressComponents) {
-        if (component.types.includes("country")) {
+        if (component.types.includes(google_maps_services_js_1.AddressType.country)) {
             country = component.long_name;
         }
-        if (component.types.includes("administrative_area_level_1")) {
+        if (component.types.includes(google_maps_services_js_1.AddressType.administrative_area_level_1)) {
             admin = component.long_name;
         }
-        if (component.types.includes("locality") || component.types.includes("postal_town")) {
+        if (component.types.includes(google_maps_services_js_1.AddressType.locality) ||
+            component.types.includes(google_maps_services_js_1.GeocodingAddressComponentType.postal_town)) {
             city = component.long_name;
         }
     }
@@ -52,10 +50,14 @@ exports.Google = {
         return { user: data };
     }),
     geocode: (address) => __awaiter(void 0, void 0, void 0, function* () {
-        const res = yield maps.geocode({ address }).asPromise();
+        if (!process.env.G_GEOCODE_KEY)
+            throw new Error("missing Google Maps API key");
+        const res = yield maps.geocode({
+            params: { address, key: process.env.G_GEOCODE_KEY },
+        });
         if (res.status < 200 || res.status > 299) {
             throw new Error("failed to geocode address");
         }
-        return parseAddress(res.json.results[0].address_components);
+        return parseAddress(res.data.results[0].address_components);
     })
 };
