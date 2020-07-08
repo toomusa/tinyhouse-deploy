@@ -25,6 +25,13 @@ exports.Stripe = {
         });
         return response;
     }),
+    disconnect: (stripeUserId) => __awaiter(void 0, void 0, void 0, function* () {
+        const response = yield client.oauth.deauthorize({
+            client_id: `${process.env.S_CLIENT_ID}`,
+            stripe_user_id: stripeUserId
+        });
+        return response;
+    }),
     getSecret: (amount, stripeAccount) => __awaiter(void 0, void 0, void 0, function* () {
         const paymentIntent = yield client.paymentIntents.create({
             payment_method_types: ['card'],
